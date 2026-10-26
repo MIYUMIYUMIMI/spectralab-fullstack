@@ -131,6 +131,19 @@ app.MapPost("/api/measurements",
             });
         }
 
+        var uniqueWavelengths = request.Points
+            .Select(p => p.Wavelength)
+            .Distinct()
+            .Count();
+
+        if (uniqueWavelengths != request.Points.Count)
+        {
+            return Results.BadRequest(new
+            {
+                Error = "Duplicate wavelength values are not allowed."
+            });
+        }
+
         var measurement = new Measurement
         {
             Name = request.Name.Trim(),

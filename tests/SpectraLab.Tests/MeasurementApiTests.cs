@@ -133,7 +133,7 @@ public class MeasurementApiTests
             response.StatusCode);
     }
 
-    
+
     [Fact]
     public async Task GetAnalysis_ValidMeasurement_ReturnsCorrectResults()
     {
@@ -187,6 +187,49 @@ public class MeasurementApiTests
             2250,
             analysis.GetProperty("integratedIntensity").GetDouble()
         );
+    }
+
+    [Fact]
+    public async Task PostMeasurement_DuplicateWavelengths_ReturnsBadRequest()
+    {
+        // Each test uses an isolated SQLite database.
+        using var connection = new SqliteConnection(
+            "Data Source=:memory:");
+
+        connection.Open();
+
+        using var factory = CreateFactory(connection);
+        using var client = factory.CreateClient();
+
+        // Two measurements have the same wavelength.
+        var payload = new
+        {
+            name = "Duplicate Spectrum",
+            points = new[]
+            {
+            new { wavelength = 400.0, intensity = 12.5 },
+            new { wavelength = 400.0, intensity = 18.2 }
+        }
+        };
+
+        // Try to save invalid data.
+        var response = await client.PostAsJsonAsync(
+            "/api/measurements",
+            payload
+        );
+
+        // Invalid measurements should be rejected.
+        Assert.Equal(
+            HttpStatusCode.BadRequest,
+            response.StatusCode
+        );
+
+        // Verify that invalid data was not saved.
+        var measurements =
+            await client.GetFromJsonAsync<JsonElement>(
+                "/api/measurements");
+
+        Assert.Equal(0, measurements.GetArrayLength());
     }
 
 }

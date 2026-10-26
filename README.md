@@ -66,6 +66,15 @@ The API separates measurement persistence from numerical analysis.
 
 **Verification:** Tests check empty database behaviour, successful POST/GET operations, invalid requests and numerical analysis responses.
 
+
+### 4. Consistent validation across API and analysis layers
+
+**Problem:** The measurement upload API initially accepted duplicate wavelengths, but the numerical analysis service rejected them. This allowed invalid data to be stored successfully and fail during later analysis.
+
+**Solution:** Added duplicate-wavelength validation in the ASP.NET Core POST endpoint before database persistence, returning HTTP 400 for invalid measurements.
+
+**Verification:** Used a Red-Green testing workflow: first reproduced the issue with a failing integration test, then fixed the validation logic. The test verifies both the HTTP response and that no invalid records are saved.
+
 ## Local Setup
 
 ### Requirements
@@ -144,11 +153,10 @@ GitHub Actions runs both checks on pushes and pull requests.
 - The chart uses automatic scaling without numerical axis ticks
 - Measurement data is simulated; no physical instrument integration
 - Database initialization uses EnsureCreated rather than EF Core migrations
-- Duplicate wavelengths are rejected by analysis but are not yet rejected at upload
 
 ## Future Improvements
 
-- Align upload validation with spectral analysis requirements
+- Improve frontend error messages for rejected CSV uploads
 - Add numerical axis ticks and measurement selection
 - Introduce EF Core migrations
 - Extend tests and support more advanced spectral analysis
