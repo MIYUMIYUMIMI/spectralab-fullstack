@@ -1,0 +1,155 @@
+
+<main class="dashboard">
+  <header>
+    <h1>SpectraLab</h1>
+    <p>Scientific Measurement Dashboard</p>
+  </header>
+
+  <section>
+    <h2>Saved Measurements</h2>
+
+    
+    <div class="upload-section">
+      <h3>Upload Spectrum CSV</h3>
+
+      <input
+        type="file"
+        accept=".csv,text/csv"
+        (change)="uploadCsv($event)"
+        [disabled]="uploading()"
+      />
+
+      @if (uploading()) {
+        <p>Uploading measurement...</p>
+      }
+
+      @if (uploadMessage()) {
+        <p role="status">{{ uploadMessage() }}</p>
+      }
+    </div>
+
+
+    @if (loading()) {
+      <p>Loading measurements...</p>
+    } @else if (error()) {
+      <p class="error">{{ error() }}</p>
+    } @else {
+      @for (measurement of measurements(); track measurement.id) {
+        <article class="measurement">
+          <h3>{{ measurement.name }}</h3>
+
+          <p>
+            Measurement ID: {{ measurement.id }}
+          </p>
+
+          <p>
+            Data points: {{ measurement.points.length }}
+          </p>
+          
+          <div class="analysis-section">
+            <h4>Spectral Analysis</h4>
+
+            @if (analyses()[measurement.id]; as analysis) {
+              <div class="analysis-grid">
+                <div>
+                  <span>Peak Wavelength</span>
+                  <strong>{{ analysis.peakWavelengthNm }} nm</strong>
+                </div>
+
+                <div>
+                  <span>Peak Intensity</span>
+                  <strong>{{ analysis.peakIntensity }}</strong>
+                </div>
+
+                <div>
+                  <span>Integrated Intensity</span>
+                  <strong>
+                    {{ analysis.integratedIntensity | number:'1.2-2' }}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>Data Points</span>
+                  <strong>{{ analysis.pointCount }}</strong>
+                </div>
+              </div>
+            } @else if (analysisErrors()[measurement.id]) {
+              <p class="error">
+                {{ analysisErrors()[measurement.id] }}
+              </p>
+            } @else {
+              <p>Calculating spectral analysis...</p>
+            }
+          </div>
+
+          <div class="spectrum-chart">
+            <h4>Spectrum Visualisation</h4>
+
+            <svg
+              viewBox="0 0 700 270"
+              role="img"
+              [attr.aria-label]="'Spectrum for ' + measurement.name"
+            >
+              <!-- Horizontal axis -->
+              <line
+                x1="50" y1="220"
+                x2="670" y2="220"
+                stroke="#64748b"
+                stroke-width="2"
+              />
+
+              <!-- Vertical axis -->
+              <line
+                x1="50" y1="20"
+                x2="50" y2="220"
+                stroke="#64748b"
+                stroke-width="2"
+              />
+
+              <!-- Spectrum line -->
+              <polyline
+                [attr.points]="chartPoints(measurement.points)"
+                fill="none"
+                stroke="#2563eb"
+                stroke-width="3"
+                stroke-linejoin="round"
+                stroke-linecap="round"
+              />
+
+              <!-- Axis labels -->
+              <text x="350" y="260" text-anchor="middle" font-size="15">
+                Wavelength (nm)
+              </text>
+
+              <text x="60" y="15" font-size="13" fill="#64748b">
+                Intensity (auto-scaled)
+              </text>
+            </svg>
+          </div>
+
+          
+
+          <table>
+            <thead>
+              <tr>
+                <th>Wavelength (nm)</th>
+                <th>Intensity</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for (point of measurement.points; track point.id) {
+                <tr>
+                  <td>{{ point.wavelength }}</td>
+                  <td>{{ point.intensity }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </article>
+      } @empty {
+        <p>No measurements saved yet.</p>
+      }
+    }
+  </section>
+</main>

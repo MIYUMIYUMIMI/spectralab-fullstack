@@ -1,0 +1,22 @@
+
+# .NET
+**/bin/
+**/obj/
+
+# Angular
+**/node_modules/
+**/.angular/
+**/dist/
+
+# Local databases
+*.db
+*.db-*
+*.backup.db
+
+# Local configuration
+.env
+.env.*
+!.env.example
+
+# IDE
+.vs/
